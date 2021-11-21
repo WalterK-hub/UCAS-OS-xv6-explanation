@@ -50,13 +50,21 @@ walkpgdir(pde_t *pgdir, const void *va, int alloc)
 
 `walkpgdir`（1654）模仿 x86 的分页硬件为一个虚拟地址寻找 PTE 的过程（见图表2-1）。`walkpgdir` 通过虚拟地址的前 10 位来找到在页目录中的对应条目（1659），如果该条目不存在，说明要找的页表页尚未分配；如果 `alloc` 参数被设置了，`walkpgdir` 会分配页表页并将其物理地址放到页目录中。最后用虚拟地址的接下来 10 位来找到其在页表中的 PTE 地址（1672）。
 
+// A virtual address 'la' has a three-part structure as follows:
+//
+// +--------10------+-------10-------+---------12----------+
+// | Page Directory |   Page Table   | Offset within Page  |
+// |      Index     |      Index     |                     |
+// +----------------+----------------+---------------------+
+//  \--- PDX(va) --/ \--- PTX(va) --/
+
 * **mappages()函数中PGROUNDDOWN()函数的作用是什什么？为何需要调用该函数？**
 
   `PGROUNDUP` 和 `PGROUNDDOWN` 是将地址四舍五入到 `PGSIZE` 的倍数的宏。这些通常用于获取页面对齐的地址。 `PGROUNDUP` 会将地址四舍五入为 `PGSIZE` 的较高倍数，而 `PGROUNDDOWN` 会将其四舍五入为 `PGSIZE` 的较低倍数。
 
   让我们举一个例子，如果 `PGROUNDUP` 在 `PGSIZE` 4KB 地址为 620 的系统上被调用:
 
-    *PGROUNDUP(620) ==> ((620 + (4096 -1)) & ~(4096)) ==> 4096*
+    *PGROUNDUP(620) ==> ((620 + (4096 -1)) & ~(4096-1)) ==> 4096*
 
     *地址 620 向上舍入为 4096。*
 
